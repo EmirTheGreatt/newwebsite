@@ -17,7 +17,7 @@ interface Property {
 }
 
 async function getProperties(): Promise<Property[]> {
-  // Query both possible document types in Sanity
+  // Query both possible document types and explicitly request gallery asset references
   const query = `*[_type in ["property", "propertyListing"]] {
     _id,
     title,
@@ -25,7 +25,10 @@ async function getProperties(): Promise<Property[]> {
     price,
     location,
     eligibleForCitizenship,
-    gallery,
+    "gallery": gallery[] {
+      asset,
+      alt
+    },
     image
   }`
   return await client.fetch(query)
@@ -45,16 +48,16 @@ export default async function HomePage() {
           {properties.map((property) => {
             const href = property.slug?.current ? `/properties/${property.slug.current}` : '#'
             
-            // Handle both image formats (gallery array OR single image field)
-            const coverImage = property.gallery?.[0] || property.image
+            // Pick the first gallery image that has a valid asset, or fall back to single image
+            const coverImage = property.gallery?.find((img) => img?.asset) || property.image
 
             return (
               <Link key={property._id} href={href} className="group">
                 <div className="border p-6 rounded-lg shadow-sm hover:shadow-md transition bg-white overflow-hidden h-full">
-                  {coverImage && (
+                  {coverImage?.asset && (
                     <img
                       src={urlFor(coverImage).width(600).height(400).url()}
-                      alt={property.title}
+                      alt={property.title || 'Property'}
                       className="w-full h-48 object-cover rounded-md mb-4 group-hover:scale-105 transition-transform duration-200"
                     />
                   )}

@@ -1,7 +1,13 @@
-const config = {
-  plugins: {
-    "@tailwindcss/postcss": {},
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.sanity.io',
+      },
+    ],
   },
 };
 
-export default config;
+export default nextConfig;
